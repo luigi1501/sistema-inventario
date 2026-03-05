@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             rows.forEach(row => {
                 const name = row.querySelector('.product-name').textContent.toLowerCase();
-                // Ajustamos para que busque en la celda de categoría (celda 1 o data-label)
+                // Buscamos en el atributo data-label para compatibilidad móvil
                 const category = row.querySelector('[data-label="Categoría"]').textContent.toLowerCase();
                 
                 if (name.includes(filter) || category.includes(filter)) {
@@ -41,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 tableBody.insertAdjacentHTML('beforeend', noResultsHTML);
                 
-                // Ocultar el mensaje de "Inventario vacío" original si existe
                 const emptyMsg = document.getElementById('emptyMessage');
                 if (emptyMsg) emptyMsg.style.display = "none";
             }
@@ -64,47 +63,59 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     });
 
-    // --- 4. Generador de Nombres Dinámicos ---
+    // --- 4. Generador de Nombres Dinámicos (Nombre_Mes_Año) ---
     const getNombreReporte = (prefijo) => {
         const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const fecha = new Date();
-        return `${prefijo}_${meses[fecha.getMonth()]}_${fecha.getFullYear()}`;
+        const mesNombre = meses[fecha.getMonth()];
+        const anio = fecha.getFullYear();
+        return `${prefijo}_${mesNombre}_${anio}`;
     };
 
-    // --- 5. EXPORTAR A PDF ---
+    // --- 5. EXPORTAR A PDF (Asegurado) ---
     document.getElementById('exportPDF')?.addEventListener('click', () => {
+        // Aseguramos acceso global
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const nombreBase = getNombreReporte('inventario');
         
         doc.setFontSize(18);
-        doc.setTextColor(67, 97, 238); 
         doc.text("Sistema de Gestión de Inventario", 14, 20);
         
-        doc.autoTable({ 
-            html: '#inventoryTable',
-            startY: 35,
-            columns: [
-                { header: '#', dataKey: 0 },
-                { header: 'Tipo', dataKey: 1 },
-                { header: 'Nombre', dataKey: 2 },
-                { header: 'Descripción', dataKey: 3 },
-                { header: 'Precio', dataKey: 4 },
-                { header: 'Stock', dataKey: 5 }
-            ],
-            headStyles: { fillColor: [67, 97, 238] }
-        });
-        doc.save(`${nombreBase}.pdf`);
+        // Ejecución con validación
+        try {
+            doc.autoTable({ 
+                html: '#inventoryTable',
+                startY: 35,
+                // Excluimos la columna de acciones (índice 6)
+                didParseCell: function(data) {
+                    if (data.column.index === 6) {
+                        data.cell.text = ['']; 
+                    }
+                }
+            });
+            doc.save(`${nombreBase}.pdf`);
+        } catch (err) {
+            console.error("Error al generar PDF:", err);
+            alert("No se pudo generar el PDF. Verifica la consola.");
+        }
     });
 
     // --- 6. EXPORTAR A EXCEL ---
     document.getElementById('exportExcel')?.addEventListener('click', () => {
         const table = document.getElementById('inventoryTable');
-        const nombreBase = getNombreReporte('reporte_inventario');
+        const nombreBase = getNombreReporte('reporte_inventario'); // Resultado: reporte_inventario_Mes_Año
         const tableClone = table.cloneNode(true);
         
+        // Limpiamos el clon para el Excel
         tableClone.querySelectorAll('tr').forEach(row => {
-            if (row.lastElementChild) row.removeChild(row.lastElementChild);
+            // Eliminar si está oculta por el buscador o si es un mensaje de sistema
+            if (row.style.display === 'none' || row.id === 'no-results-msg' || row.id === 'emptyMessage') {
+                row.remove();
+            } else if (row.lastElementChild) {
+                // Eliminar la columna de "Acciones" (botones)
+                row.removeChild(row.lastElementChild);
+            }
         });
 
         const ws = XLSX.utils.table_to_sheet(tableClone);
