@@ -375,3 +375,111 @@ footer p {
     font-weight: 600;
     margin-bottom: 15px;
 }
+
+/* --- 10. OPTIMIZACIÓN RESPONSIVA (MOBILE FIRST) --- */
+
+@media (max-width: 768px) {
+    /* Ajustes de contenedores */
+    .container {
+        padding: 0 1rem 2rem;
+    }
+
+    .form-container, .table-container {
+        padding: 1.2rem;
+    }
+
+    /* Transformación de la tabla en tarjetas */
+    table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+    }
+
+    /* Escondemos los encabezados originales (th) */
+    thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    tr {
+        margin-bottom: 1rem;
+        border: 1px solid #edf2f7;
+        border-radius: 8px;
+        padding: 10px;
+        background: #f8fafc;
+    }
+
+    td {
+        border: none;
+        border-bottom: 1px solid #edf2f7;
+        position: relative;
+        padding-left: 50% !important;
+        text-align: right !important;
+        font-size: 0.9rem;
+    }
+
+    td:last-child {
+        border-bottom: 0;
+        text-align: center !important;
+        padding-left: 15px !important;
+        background: #fff;
+        margin-top: 10px;
+    }
+
+    /* Agregamos etiquetas automáticas usando el atributo data-label */
+    td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+
+    /* Ajuste de botones de acción en móvil */
+    .actions {
+        justify-content: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .btn-edit, .btn-delete {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+    }
+
+    /* Ajuste de la cabecera de la tabla (Botones PDF/Excel) */
+    .table-header-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .table-header-flex .actions-top {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+
+/* --- ANIMACIONES DE ERROR --- */
+.error-visual {
+    display: inline-block;
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+@media (max-width: 600px) {
+    .error-visual { font-size: 5rem; }
+    h1 { font-size: 2rem !important; }
+}

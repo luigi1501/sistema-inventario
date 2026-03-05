@@ -66,17 +66,17 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px;">
         <h2 style="margin: 0;">📋 Inventario Actual</h2>
         
-        <div style="display: flex; gap: 10px; align-items: center;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <a href="/historial" class="btn-edit" style="background: #eef2ff; color: #4361ee; border: 1px solid #c7d2fe; text-decoration: none; padding: 10px 15px; border-radius: 8px; font-weight: 600;">
-                📜 Ver Reporte de Ventas
+                📜 Reporte
             </a>
 
             <button id="exportPDF" class="btn-edit" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">📄 PDF</button>
             <button id="exportExcel" class="btn-edit" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">📊 Excel</button>
             
             <div class="search-wrapper">
-                <input type="text" id="searchInput" placeholder="🔍 Buscar producto o tipo..." 
-                       style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; width: 220px; font-size: 0.9rem;">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar..." 
+                       style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; width: 180px; font-size: 0.9rem;">
             </div>
         </div>
     </div>
@@ -86,7 +86,8 @@
             <thead>
                 <tr>
                     <th>#</th> 
-                    <th>Tipo/Categoría</th> <th>Producto</th>
+                    <th>Categoría</th> 
+                    <th>Producto</th>
                     <th>Descripción</th>
                     <th>Precio</th>
                     <th>Stock</th>
@@ -104,28 +105,28 @@
 
                 <% productos.forEach((producto, i) => { %>
                     <tr class="product-row"> 
-                        <td><%= i + 1 %></td> 
-                        <td>
+                        <td data-label="#"> <%= i + 1 %> </td> 
+                        <td data-label="Categoría">
                             <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; color: #475569; font-weight: 600;">
                                 <%= producto.categoria || 'General' %>
                             </span>
                         </td>
-                        <td class="product-name"><strong><%= producto.nombre %></strong></td> 
-                        <td style="font-size: 0.9rem; color: #64748b;"><%= producto.descripcion %></td>
-                        <td style="font-weight: 600;">$<%= producto.precio %></td>
+                        <td data-label="Producto" class="product-name"><strong><%= producto.nombre %></strong></td> 
+                        <td data-label="Descripción" style="font-size: 0.9rem; color: #64748b;"><%= producto.descripcion %></td>
+                        <td data-label="Precio" style="font-weight: 600;">$<%= producto.precio %></td>
                         
-                        <td style="color: <%= producto.stock < 5 ? '#ef233c' : '#2d3436' %>; font-weight: <%= producto.stock < 5 ? '700' : '400' %>;">
+                        <td data-label="Stock" style="color: <%= producto.stock < 5 ? '#ef233c' : '#2d3436' %>; font-weight: <%= producto.stock < 5 ? '700' : '400' %>;">
                             <%= producto.stock %>
                             <% if (producto.stock < 5) { %>
                                 <span style="font-size: 0.7rem; display: block; text-transform: uppercase; letter-spacing: 0.5px; color: #ef233c;">⚠️ Stock Crítico</span>
                             <% } %>
                         </td>
 
-                        <td class="no-export">
+                        <td data-label="Acciones" class="no-export">
                             <div class="actions">
                                 <button class="btn-sell" style="background: #dcfce7; color: #166534; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;" 
                                         onclick="venderProducto('<%= producto.id %>', '<%= producto.nombre %>', '<%= producto.categoria %>', <%= producto.precio %>, <%= producto.stock %>)">
-                                  💰 Vender
+                                    💰 Vender
                                 </button>
                                 <a href="/editar/<%= producto.id %>" class="btn-edit" style="padding: 8px 12px; border-radius: 6px;">Editar</a>
                                 <a href="/eliminar/<%= producto.id %>" 

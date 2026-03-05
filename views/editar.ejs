@@ -13,7 +13,7 @@
 
             <div class="form-group">
                 <label for="categoria">Categoría / Tipo:</label>
-                <select id="categoria" name="categoria" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <select id="categoria" name="categoria" class="custom-select" required>
                     <% 
                         const categorias = ['Electrónica', 'Periféricos', 'Software', 'Repuestos', 'Otros']; 
                     %>
@@ -35,17 +35,15 @@
                 <input type="number" id="stock" name="stock" value="<%= producto.stock %>" required>
             </div>
 
-            <div class="form-group" style="grid-column: span 2;">
+            <div class="form-group full-width">
                 <label for="descripcion">Descripción:</label>
                 <input type="text" id="descripcion" name="descripcion" value="<%= producto.descripcion %>">
             </div>
         </div>
 
-        <div class="actions" style="margin-top: 20px; display: flex; gap: 10px;">
-            <button type="submit" class="btn-save" style="flex: 2;">Actualizar Datos</button>
-            <a href="/" class="btn-delete" style="text-decoration: none; display: inline-block; text-align: center; flex: 1; padding: 12px; background: #64748b;">
-                Cancelar
-            </a>
+        <div class="form-actions-edit">
+            <button type="submit" class="btn-save">Actualizar Datos</button>
+            <a href="/" class="btn-cancel-link">Cancelar</a>
         </div>
     </form>
 </section>
