@@ -1,0 +1,377 @@
+/* --- 1. VARIABLES DE ENTORNO --- 
+   Centralización de colores y espaciados para mantener consistencia visual. */
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a0ca3;
+    --secondary: #212529;
+    --accent: #4cc9f0;
+    --danger: #ef233c;
+    --success: #06d6a0;
+    --background: #f0f2f5;
+    --white: #ffffff;
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.1);
+    --radius: 12px;
+}
+
+/* --- 2. RESET Y TIPOGRAFÍA --- 
+   Configuración de box-sizing y suavizado de transiciones globales. */
+* {
+    box-sizing: border-box;
+    transition: all 0.25s ease;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    background-color: var(--background);
+    color: var(--secondary);
+    line-height: 1.6;
+}
+
+/* --- 3. ENCABEZADO GEOMÉTRICO --- 
+   Uso de clip-path para un acabado moderno y padding reducido para optimizar el viewport. */
+header {
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    color: white;
+    padding: 1.5rem 1rem; 
+    text-align: center;
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.8rem;
+    letter-spacing: -0.5px;
+}
+
+/* --- 4. ARQUITECTURA DE CONTENEDORES --- 
+   Diseño de 'cards' con énfasis superior para separar visualmente las secciones. */
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+.form-container, 
+.table-container {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 2rem;
+    position: relative;
+    border-top: 4px solid var(--primary);
+}
+
+/* --- 5. SISTEMA DE FORMULARIOS --- 
+   Estructura de grid flexible y control de foco para mejorar la experiencia de usuario (UX). */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.grid-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 1.5rem;
+}
+
+input {
+    padding: 12px 16px;
+    border: 2px solid #edf2f7;
+    border-radius: 8px;
+    background: #f8fafc;
+    font-size: 1rem;
+    outline: none;
+    width: 100%;
+}
+
+input:focus {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+}
+
+/* --- 6. ACCIONES Y BOTONES --- 
+   Diferenciación visual entre acciones primarias, secundarias y de peligro. */
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    margin-top: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.btn-save {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+}
+
+.btn-save:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-cancel {
+    color: var(--danger);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.btn-cancel:hover {
+    text-decoration: underline;
+}
+
+/* --- 7. COMPONENTES DE TABLA --- 
+   Optimización de legibilidad y manejo de acciones integradas. */
+.table-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 15px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #f8fafc;
+    padding: 15px;
+    text-align: left;
+    font-size: 0.75rem;
+    color: #64748b;
+    border-bottom: 2px solid #f1f5f9;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit, .btn-delete {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-edit { background: #eef2ff; color: var(--primary); }
+.btn-delete { background: #fff1f2; color: var(--danger); }
+
+.btn-edit:hover { background: var(--primary); color: white; }
+.btn-delete:hover { background: var(--danger); color: white; }
+
+/* --- 8. MICRO-INTERACCIONES Y ESTADOS --- 
+   Feedback visual para estados de carga y alertas de inventario. */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.product-row {
+    animation: fadeIn 0.4s ease forwards;
+}
+
+.low-stock {
+    color: var(--danger);
+    font-weight: 700;
+}
+
+/* --- DASHBOARD ESTATÍSTICAS --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--secondary);
+}
+
+/* --- 9. PIE DE PÁGINA (FOOTER) --- 
+   Centrado absoluto y estilo refinado para los créditos del sistema. */
+footer {
+    width: 100%;
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-top: 2rem;
+    color: #64748b;
+    font-size: 0.9rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+footer p {
+    margin: 5px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Estilos del Historial --- */
+
+/* Contenedor de estadísticas de ventas */
+.stats-sales {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card-sales {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #10b981;
+    text-align: center;
+}
+
+.stat-card-sales .label {
+    display: block;
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.stat-card-sales .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Tabla de Historial */
+#salesTable {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#salesTable th {
+    background-color: #4361ee;
+    color: white;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+}
+
+#salesTable td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #334155;
+}
+
+#salesTable tr:hover {
+    background-color: #f8fafc;
+}
+
+/* Resaltado del Total de Venta */
+.total-cell {
+    font-weight: 700;
+    color: #059669;
+}
+
+/* Botones de acción específicos */
+.btn-pdf-sales {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 20px;
+    transition: background 0.3s;
+}
+
+.btn-pdf-sales:hover {
+    background-color: #dc2626;
+}
+
+.btn-back {
+    display: inline-block;
+    color: #4361ee;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 15px;
+}

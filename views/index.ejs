@@ -1,0 +1,146 @@
+<%- include('partials/header') %>
+
+<div class="dashboard-grid">
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(67, 97, 238, 0.1); color: var(--primary);">📦</div>
+        <div class="stat-info">
+            <span class="stat-label">Total Productos</span>
+            <span class="stat-value"><%= stats.totalProductos %></span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(6, 214, 160, 0.1); color: var(--success);">💰</div>
+        <div class="stat-info">
+            <span class="stat-label">Valor Total</span>
+            <span class="stat-value">$<%= stats.valorInventario %></span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(239, 35, 60, 0.1); color: var(--danger);">⚠️</div>
+        <div class="stat-info">
+            <span class="stat-label">Stock Bajo</span>
+            <span class="stat-value"><%= stats.productosBajoStock %></span>
+        </div>
+    </div>
+</div>
+
+<section class="form-container">
+    <h2>Agregar Nuevo Producto</h2>
+    <form action="/nuevo" method="POST">
+        <div class="grid-form">
+            <div class="form-group">
+                <label>Nombre del Producto</label>
+                <input type="text" name="nombre" placeholder="Ej. Laptop Dell" required>
+            </div>
+            <div class="form-group">
+                <label>Categoría / Tipo</label>
+                <select name="categoria" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="" disabled selected>Selecciona una categoría</option>
+                    <option value="Electrónica">Electrónica</option>
+                    <option value="Periféricos">Periféricos</option>
+                    <option value="Software">Software</option>
+                    <option value="Repuestos">Repuestos</option>
+                    <option value="Otros">Otros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Precio Unitario ($)</label>
+                <input type="number" name="precio" step="0.01" min="0.01" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+                <label>Stock Inicial</label>
+                <input type="number" name="stock" min="0" placeholder="0" required>
+            </div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Descripción</label>
+                <input type="text" name="descripcion" placeholder="Breve detalle del producto">
+            </div>
+        </div>
+        <button type="submit" class="btn-save">✨ Guardar en Inventario</button>
+    </form>
+</section>
+
+<section class="table-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px;">
+        <h2 style="margin: 0;">📋 Inventario Actual</h2>
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <a href="/historial" class="btn-edit" style="background: #eef2ff; color: #4361ee; border: 1px solid #c7d2fe; text-decoration: none; padding: 10px 15px; border-radius: 8px; font-weight: 600;">
+                📜 Ver Reporte de Ventas
+            </a>
+
+            <button id="exportPDF" class="btn-edit" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">📄 PDF</button>
+            <button id="exportExcel" class="btn-edit" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">📊 Excel</button>
+            
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" placeholder="🔍 Buscar producto o tipo..." 
+                       style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ddd; width: 220px; font-size: 0.9rem;">
+            </div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>#</th> 
+                    <th>Tipo/Categoría</th> <th>Producto</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th class="no-export">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (productos.length === 0) { %>
+                    <tr id="emptyMessage">
+                        <td colspan="7" style="text-align: center; padding: 30px; color: #94a3b8;">
+                            No hay productos registrados en el inventario.
+                        </td>
+                    </tr>
+                <% } %>
+
+                <% productos.forEach((producto, i) => { %>
+                    <tr class="product-row"> 
+                        <td><%= i + 1 %></td> 
+                        <td>
+                            <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; color: #475569; font-weight: 600;">
+                                <%= producto.categoria || 'General' %>
+                            </span>
+                        </td>
+                        <td class="product-name"><strong><%= producto.nombre %></strong></td> 
+                        <td style="font-size: 0.9rem; color: #64748b;"><%= producto.descripcion %></td>
+                        <td style="font-weight: 600;">$<%= producto.precio %></td>
+                        
+                        <td style="color: <%= producto.stock < 5 ? '#ef233c' : '#2d3436' %>; font-weight: <%= producto.stock < 5 ? '700' : '400' %>;">
+                            <%= producto.stock %>
+                            <% if (producto.stock < 5) { %>
+                                <span style="font-size: 0.7rem; display: block; text-transform: uppercase; letter-spacing: 0.5px; color: #ef233c;">⚠️ Stock Crítico</span>
+                            <% } %>
+                        </td>
+
+                        <td class="no-export">
+                            <div class="actions">
+                                <button class="btn-sell" style="background: #dcfce7; color: #166534; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;" 
+                                        onclick="venderProducto('<%= producto.id %>', '<%= producto.nombre %>', '<%= producto.categoria %>', <%= producto.precio %>, <%= producto.stock %>)">
+                                  💰 Vender
+                                </button>
+                                <a href="/editar/<%= producto.id %>" class="btn-edit" style="padding: 8px 12px; border-radius: 6px;">Editar</a>
+                                <a href="/eliminar/<%= producto.id %>" 
+                                   class="btn-delete"
+                                   style="padding: 8px 12px; border-radius: 6px;"
+                                   onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                                   Eliminar
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<%- include('partials/footer') %>
