@@ -380,109 +380,97 @@ footer p {
 
 @media (max-width: 768px) {
     /* Ajustes de contenedores */
-    .container {
-        padding: 0 1rem 2rem;
-    }
+    .container { padding: 0 1rem 2rem; }
+    .form-container, .table-container { padding: 1.2rem; }
 
-    .form-container, .table-container {
-        padding: 1.2rem;
-    }
-
-    /* === NUEVO: ARREGLO PARA QUE EL FORMULARIO NO SE AMONTONE === */
+    /* FORMULARIO VERTICAL (AGREGAR PRODUCTO) */
     .grid-form {
         display: flex !important;
         flex-direction: column !important;
         gap: 15px !important;
     }
+    .form-group { width: 100% !important; }
+    input, select, .btn-save { width: 100% !important; box-sizing: border-box; }
+    .form-actions { flex-direction: column; gap: 15px; align-items: stretch; }
 
-    .form-group {
-        width: 100% !important;
+    /* === TRANSFORMACIÓN DE TABLA A TARJETAS === */
+    .table-wrapper table, 
+    .table-wrapper tbody, 
+    .table-wrapper tr, 
+    .table-wrapper td { 
+        display: block !important; 
+        width: 100% !important; 
     }
 
-    input, select, .btn-save {
-        width: 100% !important;
-        box-sizing: border-box;
+    .table-wrapper thead { display: none; }
+
+    .table-wrapper tr {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
-    .form-actions {
+    .table-wrapper td {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0 !important;
+        border-bottom: 1px solid #f8fafc;
+    }
+
+    /* Ajuste para que el texto largo (descripción) no rompa la tarjeta */
+    .table-wrapper td[data-label="DESCRIPCIÓN"] {
         flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-    /* ========================================================== */
-
-    /* Transformación de la tabla en tarjetas */
-    table, thead, tbody, th, td, tr {
-        display: block;
-        width: 100%;
+        align-items: flex-end;
+        text-align: right;
     }
 
-    /* Escondemos los encabezados originales (th) */
-    thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-
-    tr {
-        margin-bottom: 1rem;
-        border: 1px solid #edf2f7;
-        border-radius: 8px;
-        padding: 10px;
-        background: #f8fafc;
-    }
-
-    td {
-        border: none;
-        border-bottom: 1px solid #edf2f7;
-        position: relative;
-        padding-left: 50% !important;
-        text-align: right !important;
-        font-size: 0.9rem;
-    }
-
-    td:last-child {
-        border-bottom: 0;
-        text-align: center !important;
-        padding-left: 15px !important;
-        background: #fff;
-        margin-top: 10px;
-    }
-
-    /* Agregamos etiquetas automáticas usando el atributo data-label */
-    td:before {
+    .table-wrapper td:before {
         content: attr(data-label);
-        position: absolute;
-        left: 15px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        text-align: left;
         font-weight: 700;
         color: #64748b;
-        text-transform: uppercase;
         font-size: 0.75rem;
+        text-transform: uppercase;
+        margin-right: 10px;
     }
 
-    /* Ajuste de botones de acción en móvil */
-    .actions {
-        justify-content: center;
+    /* === FIX DE BOTONES DE ACCIÓN EN MÓVIL === */
+    .table-wrapper td:last-child {
+        border-bottom: none;
+        padding-top: 15px !important;
+        display: block !important; 
+    }
+
+    .table-wrapper td:last-child:before {
+        content: "ACCIONES";
+        display: block;
+        margin-bottom: 10px;
+        text-align: left;
         width: 100%;
-        margin-top: 10px;
     }
 
-    .btn-edit, .btn-delete {
-        flex: 1;
-        text-align: center;
-        padding: 10px;
+    .table-wrapper .actions {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr 1fr !important;
+        gap: 10px !important;
+        width: 100% !important;
     }
 
-    /* Ajuste de la cabecera de la tabla (Botones PDF/Excel) */
-    .table-header-flex {
-        flex-direction: column;
-        align-items: stretch;
+    /* Forzamos a que los botones se vean bien */
+    .btn-edit, .btn-delete, .btn-vender, .actions button, .actions a {
+        width: 100% !important;
+        padding: 10px 5px !important;
+        font-size: 0.8rem !important;
+        text-align: center !important;
+        justify-content: center !important;
+        margin: 0 !important;
     }
 
+    /* Cabecera (Reporte, PDF, Excel) */
+    .table-header-flex { flex-direction: column; align-items: stretch; gap: 15px; }
     .table-header-flex .actions-top {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -490,19 +478,18 @@ footer p {
     }
 }
 
-/* --- ANIMACIONES DE ERROR --- */
+/* --- ANIMACIONES Y ESTADOS --- */
 .error-visual {
     display: inline-block;
     animation: float 4s ease-in-out infinite;
 }
 
 @keyframes float {
-    0% { transform: translateY(0px) rotate(0deg); }
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-20px) rotate(10deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
 }
 
 @media (max-width: 600px) {
     .error-visual { font-size: 5rem; }
-    h1 { font-size: 2rem !important; }
+    header h1 { font-size: 1.6rem !important; }
 }

@@ -32,8 +32,6 @@ class ProductosModel {
             
             // 2. Intentar agregar la columna (por si la tabla ya existía sin ella)
             try {
-                // Nota: TiDB maneja ALTER TABLE de forma eficiente, 
-                // pero si la columna ya existe, lanzará un error que capturamos aquí.
                 await db.query(sqlAddColumn);
             } catch (colErr) {
                 // Silenciamos el error si la columna ya existe (Error 1060 en MySQL/TiDB)
@@ -159,6 +157,36 @@ class ProductosModel {
             throw err;
         }
     }
+
+    /**
+     * Filtra productos por nombre o categoría (Buscador en tiempo real).
+     * @param {string} query - El texto a buscar.
+     * @returns {Promise<Array>} Lista de productos encontrados o array vacío.
+     */
+    static async search(query) {
+        // Usamos LIKE con el comodín % para buscar coincidencias parciales
+        const sql = `
+            SELECT * FROM productos 
+            WHERE nombre LIKE ? OR categoria LIKE ? 
+            ORDER BY id DESC
+        `;
+        const searchTerm = `%${query}%`;
+        
+        try {
+            const [rows] = await db.query(sql, [searchTerm, searchTerm]);
+            
+            // Si rows es null o undefined, devolvemos un array vacío.
+            // Esto evita errores en el frontend al intentar hacer .length o .forEach
+            return rows || [];
+            
+        } catch (err) {
+            console.error("Error en search:", err.message);
+            // Retornamos un array vacío en caso de error para que el sistema 
+            // no se caiga y el buscador simplemente muestre "No se encontraron productos"
+            return [];
+        }
+    }
+
 }
 
 // Inicialización automática al cargar el modelo en la aplicación

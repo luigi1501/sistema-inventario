@@ -2,23 +2,49 @@
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const editForm = document.getElementById('editForm');
+    const tableBody = document.querySelector('#inventoryTable tbody');
     const socket = io();
 
     // --- 1. Lógica de Filtrado en Tiempo Real (Nombre + Categoría) ---
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
-            const filter = this.value.toLowerCase();
+            const filter = this.value.toLowerCase().trim();
             const rows = document.querySelectorAll('.product-row');
+            let foundAny = false;
+
             rows.forEach(row => {
                 const name = row.querySelector('.product-name').textContent.toLowerCase();
-                const category = row.cells[1].textContent.toLowerCase();
+                // Ajustamos para que busque en la celda de categoría (celda 1 o data-label)
+                const category = row.querySelector('[data-label="Categoría"]').textContent.toLowerCase();
                 
                 if (name.includes(filter) || category.includes(filter)) {
                     row.style.display = "";
+                    foundAny = true;
                 } else {
                     row.style.display = "none";
                 }
             });
+
+            // --- LÓGICA DE MENSAJE "NO ENCONTRADO" ---
+            const existingMsg = document.getElementById('no-results-msg');
+            if (existingMsg) existingMsg.remove();
+
+            if (!foundAny && filter !== "") {
+                const noResultsHTML = `
+                    <tr id="no-results-msg">
+                        <td colspan="7" style="text-align: center; padding: 40px; background: #ffffff;">
+                            <div style="font-size: 3rem; margin-bottom: 10px;">🔍</div>
+                            <h3 style="color: #64748b; margin: 0;">No se encontraron productos</h3>
+                            <p style="color: #94a3b8; margin: 5px 0 0;">Intenta con otro nombre o categoría</p>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', noResultsHTML);
+                
+                // Ocultar el mensaje de "Inventario vacío" original si existe
+                const emptyMsg = document.getElementById('emptyMessage');
+                if (emptyMsg) emptyMsg.style.display = "none";
+            }
         });
     }
 
@@ -26,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editForm) {
         editForm.addEventListener('submit', function(e) {
             const nombre = document.getElementById('nombre').value;
-            // No detenemos el evento (submit normal), solo avisamos al usuario
             alert(`🔄 Actualizando "${nombre}"... Por favor, espera.`);
         });
     }
@@ -34,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 3. Lógica de Socket.io (Actualización Automática) ---
     socket.on('producto-actualizado', () => {
         console.log("🔄 Sincronizando cambios con el servidor...");
-        // Pequeño delay para asegurar que la DB terminó el proceso
         setTimeout(() => {
             window.location.reload(); 
         }, 500);
@@ -42,17 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 4. Generador de Nombres Dinámicos ---
     const getNombreReporte = (prefijo) => {
-        const meses = [
-            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-        ];
+        const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const fecha = new Date();
-        const mes = meses[fecha.getMonth()];
-        const anio = fecha.getFullYear(); 
-        return `${prefijo}_${mes}_${anio}`;
+        return `${prefijo}_${meses[fecha.getMonth()]}_${fecha.getFullYear()}`;
     };
 
-    // --- 5. EXPORTAR A PDF (Estilo Azul Premium con Categoría) ---
+    // --- 5. EXPORTAR A PDF ---
     document.getElementById('exportPDF')?.addEventListener('click', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -61,10 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setFontSize(18);
         doc.setTextColor(67, 97, 238); 
         doc.text("Sistema de Gestión de Inventario", 14, 20);
-        
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Reporte generado: ${nombreBase.split('_').slice(1).join(' ')}`, 14, 28);
         
         doc.autoTable({ 
             html: '#inventoryTable',
@@ -77,53 +92,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 { header: 'Precio', dataKey: 4 },
                 { header: 'Stock', dataKey: 5 }
             ],
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: { 
-                fillColor: [67, 97, 238], 
-                textColor: [255, 255, 255], 
-                halign: 'center'
-            },
-            columnStyles: {
-                0: { halign: 'center' },
-                4: { halign: 'right' },
-                5: { halign: 'center' }
-            },
-            alternateRowStyles: { fillColor: [248, 250, 252] }
+            headStyles: { fillColor: [67, 97, 238] }
         });
-        
         doc.save(`${nombreBase}.pdf`);
     });
 
-    // --- 6. EXPORTAR A EXCEL (Incluyendo Categoría) ---
+    // --- 6. EXPORTAR A EXCEL ---
     document.getElementById('exportExcel')?.addEventListener('click', () => {
         const table = document.getElementById('inventoryTable');
         const nombreBase = getNombreReporte('reporte_inventario');
         const tableClone = table.cloneNode(true);
         
-        const allRows = tableClone.querySelectorAll('tr');
-        allRows.forEach(row => {
-            if (row.lastElementChild) {
-                row.removeChild(row.lastElementChild);
-            }
+        tableClone.querySelectorAll('tr').forEach(row => {
+            if (row.lastElementChild) row.removeChild(row.lastElementChild);
         });
 
         const ws = XLSX.utils.table_to_sheet(tableClone);
-        ws['!cols'] = [
-            { wch: 6 },  { wch: 18 }, { wch: 30 }, { wch: 45 }, { wch: 12 }, { wch: 10 }
-        ];
-
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Inventario");
         XLSX.writeFile(wb, `${nombreBase}.xlsx`);
     });
 });
 
-// --- 7. LÓGICA DE VENTAS (Fuera del DOMContentLoaded para acceso global) ---
+// --- 7. LÓGICA DE VENTAS (Global) ---
 async function venderProducto(id, nombre, categoria, precio, stockActual) {
     const cantidad = prompt(`VENDIENDO: ${nombre} (${categoria})\nStock disponible: ${stockActual}\n\n¿Cuántas unidades deseas vender?`);
     
     if (cantidad === null || cantidad === "") return; 
-
     const cantNum = parseInt(cantidad);
 
     if (isNaN(cantNum) || cantNum <= 0) {
@@ -150,13 +145,11 @@ async function venderProducto(id, nombre, categoria, precio, stockActual) {
 
         if (response.ok) {
             alert(`✅ Venta exitosa: ${cantNum} unidad(es) de ${nombre}.`);
-            // Socket.io se encargará del reload
         } else {
             const errorData = await response.json();
             alert("Error: " + (errorData.message || "No se pudo procesar la venta."));
         }
     } catch (error) {
-        console.error("Error:", error);
         alert("Error de conexión con el servidor.");
     }
 }
