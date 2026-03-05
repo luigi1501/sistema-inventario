@@ -3,9 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const editForm = document.getElementById('editForm');
     const tableBody = document.querySelector('#inventoryTable tbody');
-    const socket = io();
 
-    // --- 1. Lógica de Filtrado en Tiempo Real (Nombre + Categoría) ---
+    // --- 1. Lógica de Filtrado en Tiempo Real ---
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
             const filter = this.value.toLowerCase().trim();
@@ -14,7 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             rows.forEach(row => {
                 const name = row.querySelector('.product-name').textContent.toLowerCase();
-                // Buscamos en el atributo data-label para compatibilidad móvil
                 const category = row.querySelector('[data-label="Categoría"]').textContent.toLowerCase();
                 
                 if (name.includes(filter) || category.includes(filter)) {
@@ -25,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // --- LÓGICA DE MENSAJE "NO ENCONTRADO" ---
             const existingMsg = document.getElementById('no-results-msg');
             if (existingMsg) existingMsg.remove();
 
@@ -40,14 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                 `;
                 tableBody.insertAdjacentHTML('beforeend', noResultsHTML);
-                
                 const emptyMsg = document.getElementById('emptyMessage');
                 if (emptyMsg) emptyMsg.style.display = "none";
             }
         });
     }
 
-    // --- 2. Lógica del Formulario de Edición (Feedback Visual) ---
+    // --- 2. Lógica de Actualización Automática (Polling) ---
+    // Colocado aquí, se ejecuta UNA sola vez al cargar la página
+    setInterval(async () => {
+        try {
+            const response = await fetch('/api/check-updates');
+            const data = await response.json();
+            if (data.necesitaActualizar) {
+                window.location.reload();
+            }
+        } catch (err) {
+            console.log("Esperando conexión con el servidor...");
+        }
+    }, 5000); 
+
+    // --- 3. Lógica del Formulario de Edición ---
     if (editForm) {
         editForm.addEventListener('submit', function(e) {
             const nombre = document.getElementById('nombre').value;
@@ -55,15 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 3. Lógica de Socket.io (Actualización Automática) ---
-    socket.on('producto-actualizado', () => {
-        console.log("🔄 Sincronizando cambios con el servidor...");
-        setTimeout(() => {
-            window.location.reload(); 
-        }, 500);
-    });
-
-    // --- 4. Generador de Nombres Dinámicos (Nombre_Mes_Año) ---
+    // --- 4. Generador de Nombres Dinámicos ---
     const getNombreReporte = (prefijo) => {
         const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         const fecha = new Date();
@@ -72,52 +74,32 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${prefijo}_${mesNombre}_${anio}`;
     };
 
-    // --- 5. EXPORTAR A PDF (Asegurado) ---
+    // --- 5. EXPORTAR A PDF ---
     document.getElementById('exportPDF')?.addEventListener('click', () => {
-        // Aseguramos acceso global
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         const nombreBase = getNombreReporte('inventario');
-        
         doc.setFontSize(18);
         doc.text("Sistema de Gestión de Inventario", 14, 20);
-        
-        // Ejecución con validación
         try {
             doc.autoTable({ 
                 html: '#inventoryTable',
                 startY: 35,
-                // Excluimos la columna de acciones (índice 6)
-                didParseCell: function(data) {
-                    if (data.column.index === 6) {
-                        data.cell.text = ['']; 
-                    }
-                }
+                didParseCell: function(data) { if (data.column.index === 6) data.cell.text = ['']; }
             });
             doc.save(`${nombreBase}.pdf`);
-        } catch (err) {
-            console.error("Error al generar PDF:", err);
-            alert("No se pudo generar el PDF. Verifica la consola.");
-        }
+        } catch (err) { alert("No se pudo generar el PDF."); }
     });
 
     // --- 6. EXPORTAR A EXCEL ---
     document.getElementById('exportExcel')?.addEventListener('click', () => {
         const table = document.getElementById('inventoryTable');
-        const nombreBase = getNombreReporte('reporte_inventario'); // Resultado: reporte_inventario_Mes_Año
+        const nombreBase = getNombreReporte('reporte_inventario');
         const tableClone = table.cloneNode(true);
-        
-        // Limpiamos el clon para el Excel
         tableClone.querySelectorAll('tr').forEach(row => {
-            // Eliminar si está oculta por el buscador o si es un mensaje de sistema
-            if (row.style.display === 'none' || row.id === 'no-results-msg' || row.id === 'emptyMessage') {
-                row.remove();
-            } else if (row.lastElementChild) {
-                // Eliminar la columna de "Acciones" (botones)
-                row.removeChild(row.lastElementChild);
-            }
+            if (row.style.display === 'none' || row.id === 'no-results-msg' || row.id === 'emptyMessage') row.remove();
+            else if (row.lastElementChild) row.removeChild(row.lastElementChild);
         });
-
         const ws = XLSX.utils.table_to_sheet(tableClone);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Inventario");
@@ -128,39 +110,22 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 7. LÓGICA DE VENTAS (Global) ---
 async function venderProducto(id, nombre, categoria, precio, stockActual) {
     const cantidad = prompt(`VENDIENDO: ${nombre} (${categoria})\nStock disponible: ${stockActual}\n\n¿Cuántas unidades deseas vender?`);
-    
     if (cantidad === null || cantidad === "") return; 
     const cantNum = parseInt(cantidad);
-
-    if (isNaN(cantNum) || cantNum <= 0) {
-        alert("Por favor, ingresa una cantidad válida.");
-        return;
-    }
-
-    if (cantNum > stockActual) {
-        alert("❌ Error: No hay suficiente stock disponible.");
-        return;
-    }
+    if (isNaN(cantNum) || cantNum <= 0) { alert("Cantidad inválida."); return; }
+    if (cantNum > stockActual) { alert("❌ Error: Stock insuficiente."); return; }
 
     try {
         const response = await fetch(`/vender/${id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                cantidad: cantNum,
-                nombre_producto: nombre,
-                categoria_producto: categoria,
-                precio_unitario: precio
-            })
+            body: JSON.stringify({ cantidad: cantNum, nombre_producto: nombre, categoria_producto: categoria, precio_unitario: precio })
         });
-
         if (response.ok) {
-            alert(`✅ Venta exitosa: ${cantNum} unidad(es) de ${nombre}.`);
+            alert(`✅ Venta exitosa.`);
+            window.location.reload(); // Recarga inmediata tras la venta
         } else {
-            const errorData = await response.json();
-            alert("Error: " + (errorData.message || "No se pudo procesar la venta."));
+            alert("Error al procesar la venta.");
         }
-    } catch (error) {
-        alert("Error de conexión con el servidor.");
-    }
+    } catch (error) { alert("Error de conexión."); }
 }
