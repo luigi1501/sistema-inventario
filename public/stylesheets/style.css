@@ -388,6 +388,29 @@ footer p {
         padding: 1.2rem;
     }
 
+    /* === NUEVO: ARREGLO PARA QUE EL FORMULARIO NO SE AMONTONE === */
+    .grid-form {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    .form-group {
+        width: 100% !important;
+    }
+
+    input, select, .btn-save {
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    /* ========================================================== */
+
     /* Transformación de la tabla en tarjetas */
     table, thead, tbody, th, td, tr {
         display: block;
