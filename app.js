@@ -15,6 +15,9 @@ var productosRouter = require('./routes/productosRoutes');
 
 var app = express();
 
+// Variable global para gestionar el estado de actualización (Polling para Vercel)
+let inventarioActualizado = false;
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -27,14 +30,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /**
  * MIDDLEWARE DE INICIALIZACIÓN
- * En entornos Serverless, a veces es mejor inicializar bajo demanda
- * o dejar que el Pool de conexiones lo maneje.
  */
 let dbInitialized = false;
 app.use(async (req, res, next) => {
     if (!dbInitialized) {
         try {
-            // Solo logueamos en desarrollo para no ensuciar los logs de Vercel
             if (process.env.NODE_ENV !== 'production') {
                 console.log("⏳ Verificando tablas en TiDB...");
             }
@@ -45,6 +45,31 @@ app.use(async (req, res, next) => {
             console.error("❌ Error en DB:", error.message);
         }
     }
+    next();
+});
+
+// --- RUTA PARA EL POLLING ---
+app.get('/api/check-updates', (req, res) => {
+    res.json({ necesitaActualizar: inventarioActualizado });
+    // Reseteamos a false para que el ciclo de recarga no sea infinito
+    inventarioActualizado = false; 
+});
+
+// --- MIDDLEWARE INTELIGENTE DE DETECCIÓN DE CAMBIOS ---
+// Detecta cualquier acción que modifique datos para disparar la recarga en otras sesiones
+app.use((req, res, next) => {
+    const originalSend = res.send;
+    res.send = function (body) {
+        // Lista de acciones que modifican el inventario
+        const accionesModificadoras = ['/vender', '/agregar', '/editar', '/eliminar', '/crear', '/update'];
+        
+        const detectoCambio = accionesModificadoras.some(accion => req.originalUrl.includes(accion));
+        
+        if (detectoCambio) {
+            inventarioActualizado = true;
+        }
+        originalSend.call(res, body);
+    };
     next();
 });
 
