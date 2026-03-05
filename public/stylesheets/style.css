@@ -478,6 +478,29 @@ footer p {
     }
 }
 
+/* --- FIX PARA FILA DE "NO RESULTADOS" EN MÓVIL --- */
+@media (max-width: 768px) {
+    #salesTable tbody tr#noResultRow {
+        display: none !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Cuando JS la activa, la mostramos como una fila normal y plana */
+    #salesTable tbody tr#noResultRow[style*="display: table-row"] {
+        display: table-row !important;
+    }
+    
+    #salesTable tbody tr#noResultRow td {
+        display: table-cell !important; /* Resetea el display: block del móvil */
+        border: 1px solid #e2e8f0 !important;
+        text-align: center !important;
+        padding: 20px !important;
+    }
+}
+
 /* --- ANIMACIONES Y ESTADOS --- */
 .error-visual {
     display: inline-block;

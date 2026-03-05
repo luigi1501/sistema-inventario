@@ -1,9 +1,15 @@
 <%- include('partials/header') %>
 
 <div class="container">
-    <header class="section-header">
-        <h1>📜 Historial de Ventas</h1>
-        <p>Registro de transacciones - <%= new Date().getFullYear() %></p>
+    <header class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div>
+            <h1>📜 Historial de Ventas</h1>
+            <p>Registro de transacciones - <%= new Date().getFullYear() %></p>
+        </div>
+        <a href="javascript:history.back()" 
+           style="background: #64748b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+           ← Volver
+        </a>
     </header>
 
     <div class="stats-container">
@@ -16,17 +22,22 @@
     </div>
 
     <div class="table-container">
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="searchInput" placeholder="🔍 Buscar por producto o categoría..." 
+                   style="width: 100%; padding: 12px 15px; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        </div>
+
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <h2 style="margin: 0;">Registro Detallado</h2>
             
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button id="openChartModal" class="btn-save" 
-                    style="background: #4361ee; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                        style="background: #4361ee; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;">
                     📊 Gráfica
                 </button>
 
                 <button id="exportVentasPDF" class="btn-save" 
-                    style="background: #ef233c; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                        style="background: #ef233c; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px;">
                     📄 PDF
                 </button>
             </div>
@@ -49,21 +60,22 @@
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 20px; color: #64748b;">No hay ventas registradas.</td>
                         </tr>
+                    <% } else { %>
+                        <% ventas.forEach(v => { %>
+                            <tr class="sales-row">
+                                <td data-label="Fecha"><%= new Date(v.fecha).toLocaleString() %></td>
+                                <td data-label="Categoría">
+                                    <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; color: #475569; font-weight: 600;">
+                                        <%= v.categoria_producto || 'General' %>
+                                    </span>
+                                </td>
+                                <td data-label="Producto" class="product-name"><strong><%= v.nombre_producto %></strong></td>
+                                <td data-label="Cantidad"><%= v.cantidad %></td>
+                                <td data-label="Unitario">$<%= v.precio_unitario %></td>
+                                <td data-label="Total Venta" class="total-cell" style="color: #06d6a0; font-weight: bold;">$<%= v.total_venta %></td>
+                            </tr>
+                        <% }) %>
                     <% } %>
-                    <% ventas.forEach(v => { %>
-                        <tr class="sales-row">
-                            <td data-label="Fecha"><%= new Date(v.fecha).toLocaleString() %></td>
-                            <td data-label="Categoría">
-                                <span style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; color: #475569; font-weight: 600;">
-                                    <%= v.categoria_producto || 'General' %>
-                                </span>
-                            </td>
-                            <td data-label="Producto"><strong><%= v.nombre_producto %></strong></td>
-                            <td data-label="Cantidad"><%= v.cantidad %></td>
-                            <td data-label="Unitario">$<%= v.precio_unitario %></td>
-                            <td data-label="Total Venta" class="total-cell" style="color: #06d6a0; font-weight: bold;">$<%= v.total_venta %></td>
-                        </tr>
-                    <% }) %>
                 </tbody>
             </table>
         </div>
@@ -83,9 +95,7 @@
                 <option value="categoria">Por Categoría</option>
             </select>
         </div>
-
         <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
-        
         <div style="height: 300px; width: 100%;">
             <canvas id="ventasChart"></canvas>
         </div>
